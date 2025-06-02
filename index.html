@@ -1,30 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <script
-            src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.10.4/gsap.min.js"></script>
-        <script
-            src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r108/three.js"></script>
+<head>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.10.4/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r108/three.js"></script>
 
-        <meta charset="UTF-8" />
-        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-        <title>Mohsin Rahman</title>
+  <title>Mohsin Rahman</title>
 
-        <link
-            href="https://fonts.googleapis.com/css2?family=Cutive+Mono&display=swap"
-            rel="stylesheet">
+  <!-- Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Cutive+Mono&display=swap" rel="stylesheet">
 
-        <link rel="stylesheet" href="styles/style.css" />
-    </head>
-    <body>
+  <!-- Styles -->
+  <link rel="stylesheet" href="styles/style.css" />
+</head>
+<body>
 
-        <div class="loading-container">
-            <span id="loadingText"></span><span class="cursor">|</span>
-        </div>
+  <div class="loading-container">
+    <span id="loadingText"></span><span class="cursor">|</span>
+  </div>
 
-        <script>
+  <script>
+    // Typing animation logic
     const loadingTextEl = document.getElementById("loadingText");
     const fullText = "Loading...";
     let phase = "blinkStart";
@@ -73,7 +72,7 @@
     loopTyping();
   </script>
 
-        <script>
+  <script>
     // Particle sphere logic
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -175,5 +174,5 @@
     }, { passive: false });
   </script>
 
-    </body>
+</body>
 </html>
