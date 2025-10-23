@@ -51,3 +51,22 @@ cells.forEach(cell => {
 
 // Start animation
 animateCells();
+
+// Navigation interactivity
+const navItems = document.querySelectorAll('.header-nav li');
+
+// Set "About" as active by default
+navItems.forEach((item, index) => {
+    if (index === 0) {
+        item.classList.add('active');
+    }
+    
+    item.addEventListener('click', () => {
+        // Remove active class from all items
+        navItems.forEach(navItem => navItem.classList.remove('active'));
+        
+        // Add active class to clicked item
+        item.classList.add('active');
+    });
+});
+

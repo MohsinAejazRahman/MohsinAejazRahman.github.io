@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Alexandria:wght@400;500;600;700&display=swap');
+
 * {
     margin: 0;
     padding: 0;
@@ -10,6 +12,7 @@ body {
     overflow: hidden;
     position: relative;
     background: #3d6a4d;
+    font-family: 'Alexandria', sans-serif;
 }
 
 .grid-container {
@@ -38,4 +41,97 @@ body {
     opacity: 0.3;
     pointer-events: none;
     z-index: 10;
+}
+
+.header {
+    position: absolute;
+    top: 40px;
+    left: 40px;
+    z-index: 20;
+    color: #FFFFFF;
+}
+
+.header-title {
+    font-family: 'Alexandria', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    margin-bottom: 32px;
+    padding-bottom: 8px;
+    border-bottom: 4px solid #FFFFFF;
+    display: inline-block;
+}
+
+.header-title .slash {
+    font-weight: 400;
+    opacity: 0.8;
+}
+
+.header-nav {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.header-nav li {
+    font-family: 'Alexandria', sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    color: #FFFFFF;
+    cursor: pointer;
+    transition: font-size 0.3s ease;
+    position: relative;
+    padding-bottom: 4px;
+}
+
+.header-nav li::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: #FFFFFF;
+    transition: width 0.3s ease;
+    white-space: nowrap;
+}
+
+.header-nav li.active::after {
+    animation: slideLineIn 0.3s ease forwards;
+}
+
+.header-nav li:not(.active)::after {
+    animation: slideLineOut 0.3s ease forwards;
+}
+
+.header-nav li.active {
+    font-size: 15px;
+    font-weight: 500;
+}
+
+.header-nav li:hover:not(.active) {
+    opacity: 0.7;
+}
+
+@keyframes slideLineIn {
+    from {
+        width: 0;
+        left: 0;
+    }
+    to {
+        width: calc(30% + 5px);
+        left: 0;
+    }
+}
+
+@keyframes slideLineOut {
+    from {
+        width: calc(30% + 5px);
+        right: 0;
+    }
+    to {
+        width: 0;
+        right: 0;
+    }
 }
