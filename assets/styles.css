@@ -146,10 +146,13 @@ body {
     max-width: 700px;
     z-index: 15;
     display: none;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
 }
 
 .about-container.active {
     display: block;
+    opacity: 1;
 }
 
 .about-box {
@@ -216,5 +219,44 @@ body {
     }
     to {
         width: 100%;
+    }
+}
+
+/* Welcome Overlay */
+.welcome-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(0px);
+}
+
+.welcome-glass-box {
+    display: none;
+}
+
+.welcome-text {
+    font-family: 'Alexandria', sans-serif;
+    font-size: 32px;
+    font-weight: 600;
+    color: #FFFFFF;
+    letter-spacing: 1px;
+    position: relative;
+    z-index: 12;
+}
+
+@keyframes fadeOutOverlay {
+    0% {
+        pointer-events: auto;
+        backdrop-filter: blur(0px);
+    }
+    100% {
+        pointer-events: none;
+        backdrop-filter: blur(0px);
     }
 }
