@@ -42,7 +42,7 @@ const activeTypingTimeouts = {
     techBox3: null
 };
 
-const aboutText = `\nHi! I'm Mohsin Rahman, a student who enjoys exploring the world of data science, machine learning, and software development. I'm studying Information Engineering (B.Sc.) at the Technical University of Munich (TUM), where I focus on software engineering, algorithms, and data structures. I also study Software Development at 42 Heilbronn, a project-based school that teaches through collaboration and hands-on coding.`;
+const aboutText = `Hi! I'm Mohsin Rahman, a student who enjoys exploring the world of data science, machine learning, and software development. I'm studying Information Engineering (B.Sc.) at the Technical University of Munich (TUM), where I focus on software engineering, algorithms, and data structures. I also study Software Development at 42 Heilbronn, a project-based school that teaches through collaboration and hands-on coding.`;
 
 const navItems_list = ['About', 'Tech Stack', 'Projects', 'Experience', 'Education', 'Contact'];
 
@@ -54,30 +54,39 @@ const header = document.querySelector('.header');
 const headerTitle = document.getElementById('headerTitle');
 const headerNav = document.getElementById('headerNav');
 
+// Optimize grid cell creation with DocumentFragment
+const gridFragment = document.createDocumentFragment();
 for (let i = 0; i < 625; i++) {
     const cell = document.createElement('div');
     cell.className = 'cell';
-    grid.appendChild(cell);
+    gridFragment.appendChild(cell);
     cells.push(cell);
 }
+grid.appendChild(gridFragment);
 
 function getRandomColor() {
     return colors[Math.floor(Math.random() * colors.length)];
 }
 
 function animateCells() {
-    cells.forEach((cell, index) => {
-        const row = Math.floor(index / 25);
-        const col = index % 25;
-        const delay = (row + col) * 100;
-        const duration = 3000 + Math.random() * 4000;
-        
-        function updateCell() {
-            cell.style.backgroundColor = getRandomColor();
-            setTimeout(updateCell, duration + Math.random() * 2000);
-        }
-        
+    // Create timing data for all cells upfront with linear intervals
+    const cellTimings = cells.map((cell, index) => {
+        const row = Math.floor(index / 15);
+        const col = index % 15;
+        return {
+            cell: cell,
+            delay: (row + col) + 500 + Math.random() * 500,
+            duration: 10000 + Math.random() * 10000, // Fixed consistent duration
+        };
+    });
+    
+    // Schedule all animations efficiently with linear timing
+    cellTimings.forEach(({ cell, delay, duration }) => {
         setTimeout(() => {
+            const updateCell = () => {
+                cell.style.backgroundColor = getRandomColor();
+                setTimeout(updateCell, duration);  // Fixed interval, no randomness
+            };
             updateCell();
         }, delay);
     });
@@ -90,19 +99,18 @@ cells.forEach(cell => {
 animateCells();
 
 // Welcome animation sequence
+const welcomeTextContent = "Hello!";
+const cursorSpan = '<span class="typing-cursor"></span>';
+
 function welcomeAnimation() {
-    // 3 cursor flashes (1.5s total)
     setTimeout(() => {
-        // Type "Hello!"
-        let text = "Hello!";
         let index = 0;
         const typeInterval = setInterval(() => {
-            if (index < text.length) {
-                welcomeText.innerHTML = text.substring(0, index + 1) + '<span class="typing-cursor"></span>';
+            if (index < welcomeTextContent.length) {
+                welcomeText.innerHTML = welcomeTextContent.substring(0, index + 1) + cursorSpan;
                 index++;
             } else {
                 clearInterval(typeInterval);
-                // Wait 1s then delete
                 setTimeout(() => {
                     deleteWelcomeText();
                 }, 1000);
@@ -112,16 +120,14 @@ function welcomeAnimation() {
 }
 
 function deleteWelcomeText() {
-    let text = "Hello!";
-    let index = text.length;
+    let index = welcomeTextContent.length;
     const deleteInterval = setInterval(() => {
         if (index > 0) {
-            welcomeText.innerHTML = text.substring(0, index - 1) + '<span class="typing-cursor"></span>';
+            welcomeText.innerHTML = welcomeTextContent.substring(0, index - 1) + cursorSpan;
             index--;
         } else {
             clearInterval(deleteInterval);
-            welcomeText.innerHTML = ''; // Stop cursor blinking
-            // Fade out overlay and show rest of page
+            welcomeText.innerHTML = '';
             setTimeout(() => {
                 fadeOutWelcome();
             }, 500);
@@ -161,20 +167,22 @@ function typeText(element, text, speed = 20, storageKey = null, resumeProgress =
         clearTimeout(activeTypingTimeouts[storageKey]);
     }
     
+    // Pre-process text once
+    const processedText = text.replace(/\n/g, '<br>');
+    
     // Determine starting index
     let index = resumeProgress && storageKey ? typingProgress[storageKey] : 0;
     
-    // Clear element only if starting fresh, otherwise preserve what's typed so far
+    // Clear element only if starting fresh
     if (index === 0) {
         element.innerHTML = '';
     }
     
     function type() {
         if (index < text.length) {
-            let displayText = text.substring(0, index + 1);
-            // Convert newlines to <br> tags
-            displayText = displayText.replace(/\n/g, '<br>');
-            element.innerHTML = displayText + '<span class="typing-cursor"></span>';
+            // Build display text only once per iteration
+            const displayText = processedText.substring(0, index + 1);
+            element.innerHTML = displayText + cursorSpan;
             
             // Save progress
             if (storageKey) {
@@ -189,12 +197,11 @@ function typeText(element, text, speed = 20, storageKey = null, resumeProgress =
                 activeTypingTimeouts[storageKey] = timeout;
             }
         } else {
-            let displayText = text.replace(/\n/g, '<br>');
-            // Remove cursor after typing completes, just show text
-            element.innerHTML = displayText;
+            // Typing complete - show final text without cursor
+            element.innerHTML = processedText;
             // Store the rendered content
             if (storageKey) {
-                renderedContent[storageKey] = displayText;
+                renderedContent[storageKey] = processedText;
                 activeTypingTimeouts[storageKey] = null;
             }
         }
@@ -207,20 +214,20 @@ function typeText(element, text, speed = 20, storageKey = null, resumeProgress =
 }
 
 // Function to animate header title
+const headerTitleFinal = 'MOHSIN AEJAZ RAHMAN <span class="slash">/</span> Portfolio';
+const headerTitleDisplay = 'MOHSIN AEJAZ RAHMAN / Portfolio';
+
 function typeHeaderTitle() {
-    const titleText = 'MOHSIN AEJAZ RAHMAN <span class="slash">/</span> Portfolio';
-    const titleDisplay = 'MOHSIN AEJAZ RAHMAN / Portfolio';
     let index = 0;
     
     return new Promise((resolve) => {
         const typeInterval = setInterval(() => {
-            if (index < titleDisplay.length) {
-                let displayText = titleDisplay.substring(0, index + 1);
-                headerTitle.innerHTML = displayText + '<span class="typing-cursor"></span>';
+            if (index < headerTitleDisplay.length) {
+                headerTitle.innerHTML = headerTitleDisplay.substring(0, index + 1) + cursorSpan;
                 index++;
             } else {
                 clearInterval(typeInterval);
-                headerTitle.innerHTML = titleText;
+                headerTitle.innerHTML = headerTitleFinal;
                 resolve();
             }
         }, 30);
@@ -229,35 +236,36 @@ function typeHeaderTitle() {
 
 // Function to animate nav items
 async function typeNavItems() {
+    const navFragment = document.createDocumentFragment();
+    const navElements = [];
+    
+    // Create all nav elements upfront
     for (let i = 0; i < navItems_list.length; i++) {
         const li = document.createElement('li');
         if (i === 0) li.classList.add('active');
+        navElements.push(li);
+        navFragment.appendChild(li);
+    }
+    headerNav.appendChild(navFragment);
+    
+    // Type each nav item sequentially
+    for (let i = 0; i < navItems_list.length; i++) {
+        const li = navElements[i];
+        const itemText = navItems_list[i];
+        let itemIndex = 0;
         
-        navItems_list.forEach((item, index) => {
-            if (index === i) {
-                // Type this item
-                let itemText = item;
-                let itemIndex = 0;
-                let displayContent = '';
-                
-                const typeItemInterval = setInterval(() => {
-                    if (itemIndex < itemText.length) {
-                        displayContent = itemText.substring(0, itemIndex + 1);
-                        li.innerHTML = displayContent + '<span class="typing-cursor"></span>';
-                        itemIndex++;
-                    } else {
-                        clearInterval(typeItemInterval);
-                        li.innerHTML = itemText;
-                    }
-                }, 30);
-            }
+        await new Promise(resolve => {
+            const typeItemInterval = setInterval(() => {
+                if (itemIndex < itemText.length) {
+                    li.innerHTML = itemText.substring(0, itemIndex + 1) + cursorSpan;
+                    itemIndex++;
+                } else {
+                    clearInterval(typeItemInterval);
+                    li.textContent = itemText;
+                    resolve();
+                }
+            }, 30);
         });
-        
-        li.textContent = navItems_list[i];
-        headerNav.appendChild(li);
-        
-        // Wait for this item to finish typing
-        await new Promise(resolve => setTimeout(resolve, navItems_list[i].length * 30 + 100));
     }
 }
 
@@ -312,50 +320,63 @@ function startAboutTextAnimation() {
 
 // Attach nav event listeners
 function attachNavEventListeners() {
+    // Cache DOM elements once
+    const aboutSection = document.getElementById('aboutSection');
+    const techStackSection = document.getElementById('techStackSection');
+    const projectsSection = document.getElementById('projectsSection');
+    const contactSection = document.getElementById('contactSection');
+    const aboutTextElement = document.getElementById('aboutText');
+    const techBox1 = document.getElementById('techBox1');
+    const techBox2 = document.getElementById('techBox2');
+    const techBox3 = document.getElementById('techBox3');
+    
+    const sections = {
+        about: aboutSection,
+        techStack: techStackSection,
+        projects: projectsSection,
+        contact: contactSection
+    };
+    
+    const techBoxes = [techBox1, techBox2, techBox3];
+    
     const navItems = document.querySelectorAll('.header-nav li');
     
     navItems.forEach((item) => {
         item.addEventListener('click', async () => {
-            document.querySelectorAll('.header-nav li').forEach(navItem => navItem.classList.remove('active'));
+            const itemText = item.textContent.trim();
+            
+            // Remove active class from all items
+            navItems.forEach(navItem => navItem.classList.remove('active'));
             item.classList.add('active');
             
-            const aboutSection = document.getElementById('aboutSection');
-            const techStackSection = document.getElementById('techStackSection');
-            const projectsSection = document.getElementById('projectsSection');
-            const aboutTextElement = document.getElementById('aboutText');
-            const techBox1 = document.getElementById('techBox1');
-            const techBox2 = document.getElementById('techBox2');
-            const techBox3 = document.getElementById('techBox3');
+            // Cancel all active typing timeouts
+            clearTimeout(activeTypingTimeouts.about);
+            clearTimeout(activeTypingTimeouts.techBox1);
+            clearTimeout(activeTypingTimeouts.techBox2);
+            clearTimeout(activeTypingTimeouts.techBox3);
             
-            if (item.textContent === 'About') {
-                // Cancel any active typing
-                if (activeTypingTimeouts.techBox1) clearTimeout(activeTypingTimeouts.techBox1);
-                if (activeTypingTimeouts.techBox2) clearTimeout(activeTypingTimeouts.techBox2);
-                if (activeTypingTimeouts.techBox3) clearTimeout(activeTypingTimeouts.techBox3);
+            // Helper function to hide all sections
+            const hideAllSections = async () => {
+                aboutSection.classList.remove('active');
+                techStackSection.classList.remove('active');
+                projectsSection.classList.remove('active');
+                contactSection.classList.remove('active');
                 
-                // Fade out other sections if visible
-                if (techStackSection.classList.contains('active')) {
-                    techStackSection.classList.remove('active');
-                    if (visitedSections.techStack) {
-                        await new Promise(resolve => setTimeout(resolve, 500));
-                    } else {
-                        await new Promise(resolve => setTimeout(resolve, 2000));
-                    }
+                const waitTime = Math.max(
+                    visitedSections.about ? 0 : 500,
+                    visitedSections.techStack ? 0 : 500,
+                    visitedSections.projects ? 0 : 500
+                );
+                if (waitTime > 0) {
+                    await new Promise(resolve => setTimeout(resolve, waitTime));
                 }
-                if (projectsSection.classList.contains('active')) {
-                    projectsSection.classList.remove('active');
-                    if (visitedSections.projects) {
-                        await new Promise(resolve => setTimeout(resolve, 500));
-                    } else {
-                        await new Promise(resolve => setTimeout(resolve, 2000));
-                    }
-                }
-                
-                // Don't clear text if already visited
+            };
+            
+            if (itemText === 'About') {
+                await hideAllSections();
                 if (!visitedSections.about) {
                     aboutTextElement.innerHTML = '';
                 }
-                
                 aboutSection.classList.add('active');
                 
                 if (!visitedSections.about) {
@@ -367,27 +388,9 @@ function attachNavEventListeners() {
                 } else {
                     aboutTextElement.innerHTML = renderedContent.about;
                 }
-            } else if (item.textContent === 'Tech Stack') {
-                // Cancel any active typing in about section
-                if (activeTypingTimeouts.about) clearTimeout(activeTypingTimeouts.about);
+            } else if (itemText === 'Tech Stack') {
+                await hideAllSections();
                 
-                // Fade out other sections
-                if (visitedSections.about) {
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                }
-                
-                aboutSection.classList.remove('active');
-                
-                if (projectsSection.classList.contains('active')) {
-                    projectsSection.classList.remove('active');
-                    if (visitedSections.projects) {
-                        await new Promise(resolve => setTimeout(resolve, 500));
-                    } else {
-                        await new Promise(resolve => setTimeout(resolve, 2000));
-                    }
-                }
-                
-                // Don't clear tech boxes if already visited
                 if (!visitedSections.techStack) {
                     techBox1.innerHTML = '';
                     techBox2.innerHTML = '';
@@ -413,72 +416,16 @@ function attachNavEventListeners() {
                         resumeTechStackAnimation();
                     }
                 }
-            } else if (item.textContent === 'Projects') {
-                // Cancel any active typing
-                if (activeTypingTimeouts.about) clearTimeout(activeTypingTimeouts.about);
-                if (activeTypingTimeouts.techBox1) clearTimeout(activeTypingTimeouts.techBox1);
-                if (activeTypingTimeouts.techBox2) clearTimeout(activeTypingTimeouts.techBox2);
-                if (activeTypingTimeouts.techBox3) clearTimeout(activeTypingTimeouts.techBox3);
-                
-                // Fade out other sections
-                if (aboutSection.classList.contains('active')) {
-                    aboutSection.classList.remove('active');
-                    if (visitedSections.about) {
-                        await new Promise(resolve => setTimeout(resolve, 500));
-                    } else {
-                        await new Promise(resolve => setTimeout(resolve, 2000));
-                    }
-                }
-                if (techStackSection.classList.contains('active')) {
-                    techStackSection.classList.remove('active');
-                    if (visitedSections.techStack) {
-                        await new Promise(resolve => setTimeout(resolve, 500));
-                    } else {
-                        await new Promise(resolve => setTimeout(resolve, 2000));
-                    }
-                }
-                
+            } else if (itemText === 'Projects') {
+                await hideAllSections();
                 projectsSection.classList.add('active');
                 
                 if (!visitedSections.projects) {
                     await new Promise(resolve => setTimeout(resolve, 2000));
                     visitedSections.projects = true;
                 }
-            } else if (item.textContent === 'Contact') {
-                // Cancel any active typing
-                if (activeTypingTimeouts.about) clearTimeout(activeTypingTimeouts.about);
-                if (activeTypingTimeouts.techBox1) clearTimeout(activeTypingTimeouts.techBox1);
-                if (activeTypingTimeouts.techBox2) clearTimeout(activeTypingTimeouts.techBox2);
-                if (activeTypingTimeouts.techBox3) clearTimeout(activeTypingTimeouts.techBox3);
-                
-                const contactSection = document.getElementById('contactSection');
-                
-                // Fade out other sections
-                if (aboutSection.classList.contains('active')) {
-                    aboutSection.classList.remove('active');
-                    if (visitedSections.about) {
-                        await new Promise(resolve => setTimeout(resolve, 500));
-                    } else {
-                        await new Promise(resolve => setTimeout(resolve, 2000));
-                    }
-                }
-                if (techStackSection.classList.contains('active')) {
-                    techStackSection.classList.remove('active');
-                    if (visitedSections.techStack) {
-                        await new Promise(resolve => setTimeout(resolve, 500));
-                    } else {
-                        await new Promise(resolve => setTimeout(resolve, 2000));
-                    }
-                }
-                if (projectsSection.classList.contains('active')) {
-                    projectsSection.classList.remove('active');
-                    if (visitedSections.projects) {
-                        await new Promise(resolve => setTimeout(resolve, 500));
-                    } else {
-                        await new Promise(resolve => setTimeout(resolve, 2000));
-                    }
-                }
-                
+            } else if (itemText === 'Contact') {
+                await hideAllSections();
                 contactSection.classList.add('active');
                 
                 if (!visitedSections.contact) {
@@ -486,23 +433,16 @@ function attachNavEventListeners() {
                     visitedSections.contact = true;
                 }
             } else {
-                // Cancel any active typing
-                if (activeTypingTimeouts.about) clearTimeout(activeTypingTimeouts.about);
-                if (activeTypingTimeouts.techBox1) clearTimeout(activeTypingTimeouts.techBox1);
-                if (activeTypingTimeouts.techBox2) clearTimeout(activeTypingTimeouts.techBox2);
-                if (activeTypingTimeouts.techBox3) clearTimeout(activeTimingTimeouts.techBox3);
-                
-                const contactSection = document.getElementById('contactSection');
-                
-                // Hide all sections
-                aboutTextElement.innerHTML = '';
-                techBox1.innerHTML = '';
-                techBox2.innerHTML = '';
-                techBox3.innerHTML = '';
+                // For Experience, Education, or other sections
                 aboutSection.classList.remove('active');
                 techStackSection.classList.remove('active');
                 projectsSection.classList.remove('active');
                 contactSection.classList.remove('active');
+                
+                aboutTextElement.innerHTML = '';
+                techBox1.innerHTML = '';
+                techBox2.innerHTML = '';
+                techBox3.innerHTML = '';
             }
         });
     });
