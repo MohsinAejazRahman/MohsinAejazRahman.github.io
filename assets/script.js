@@ -13,7 +13,8 @@ const colors = [
 // Track visited sections and their content
 const visitedSections = {
     about: false,
-    techStack: false
+    techStack: false,
+    projects: false
 };
 
 // Store rendered content
@@ -319,91 +320,128 @@ function attachNavEventListeners() {
             
             const aboutSection = document.getElementById('aboutSection');
             const techStackSection = document.getElementById('techStackSection');
+            const projectsSection = document.getElementById('projectsSection');
             const aboutTextElement = document.getElementById('aboutText');
             const techBox1 = document.getElementById('techBox1');
             const techBox2 = document.getElementById('techBox2');
             const techBox3 = document.getElementById('techBox3');
             
             if (item.textContent === 'About') {
-                // Cancel any active typing in tech stack
+                // Cancel any active typing
                 if (activeTypingTimeouts.techBox1) clearTimeout(activeTypingTimeouts.techBox1);
                 if (activeTypingTimeouts.techBox2) clearTimeout(activeTypingTimeouts.techBox2);
                 if (activeTypingTimeouts.techBox3) clearTimeout(activeTypingTimeouts.techBox3);
                 
-                // Fade out tech stack if visible
+                // Fade out other sections if visible
                 if (techStackSection.classList.contains('active')) {
                     techStackSection.classList.remove('active');
-                    // If tech stack was already visited, just disappear (0.5s wait)
                     if (visitedSections.techStack) {
                         await new Promise(resolve => setTimeout(resolve, 500));
                     } else {
-                        // First visit: wait for fade out (2s)
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                    }
+                }
+                if (projectsSection.classList.contains('active')) {
+                    projectsSection.classList.remove('active');
+                    if (visitedSections.projects) {
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                    } else {
                         await new Promise(resolve => setTimeout(resolve, 2000));
                     }
                 }
                 
-                // Don't clear text if already visited - keep stored content
+                // Don't clear text if already visited
                 if (!visitedSections.about) {
                     aboutTextElement.innerHTML = '';
                 }
                 
                 aboutSection.classList.add('active');
                 
-                // Wait for fade - only 2s if first visit, otherwise instant (already visible)
                 if (!visitedSections.about) {
                     await new Promise(resolve => setTimeout(resolve, 2000));
-                    // Mark as visited and type the text (first time only)
                     visitedSections.about = true;
                     typeText(aboutTextElement, aboutText, 20, 'about', false);
                 } else if (typingProgress.about < aboutText.length) {
-                    // Resume typing from where we left off
                     typeText(aboutTextElement, aboutText, 20, 'about', true);
                 } else {
-                    // Typing was already complete, restore rendered content
                     aboutTextElement.innerHTML = renderedContent.about;
                 }
             } else if (item.textContent === 'Tech Stack') {
                 // Cancel any active typing in about section
                 if (activeTypingTimeouts.about) clearTimeout(activeTypingTimeouts.about);
                 
-                // If about was already visited, just disappear (0.5s wait)
+                // Fade out other sections
                 if (visitedSections.about) {
                     await new Promise(resolve => setTimeout(resolve, 500));
                 }
                 
                 aboutSection.classList.remove('active');
                 
-                // Don't clear tech boxes if already visited - keep stored content
+                if (projectsSection.classList.contains('active')) {
+                    projectsSection.classList.remove('active');
+                    if (visitedSections.projects) {
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                    } else {
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                    }
+                }
+                
+                // Don't clear tech boxes if already visited
                 if (!visitedSections.techStack) {
                     techBox1.innerHTML = '';
                     techBox2.innerHTML = '';
                     techBox3.innerHTML = '';
                 }
                 
-                // Start tech stack fade in immediately
                 techStackSection.classList.add('active');
                 
-                // Wait for fade - only 2s if first visit, otherwise instant (already visible)
                 if (!visitedSections.techStack) {
                     await new Promise(resolve => setTimeout(resolve, 2000));
-                    // Mark as visited and type the text (first time only)
                     visitedSections.techStack = true;
                     startTechStackAnimation();
                 } else {
-                    // Check if any typing is incomplete - resume if so
                     const allComplete = typingProgress.techBox1 >= techBoxTitles[0].length &&
                                       typingProgress.techBox2 >= techBoxTitles[1].length &&
                                       typingProgress.techBox3 >= techBoxTitles[2].length;
                     
                     if (allComplete) {
-                        // All typing was complete, restore rendered content
                         techBox1.innerHTML = renderedContent.techBox1;
                         techBox2.innerHTML = renderedContent.techBox2;
                         techBox3.innerHTML = renderedContent.techBox3;
                     } else {
-                        // Resume typing
                         resumeTechStackAnimation();
                     }
+                }
+            } else if (item.textContent === 'Projects') {
+                // Cancel any active typing
+                if (activeTypingTimeouts.about) clearTimeout(activeTypingTimeouts.about);
+                if (activeTypingTimeouts.techBox1) clearTimeout(activeTypingTimeouts.techBox1);
+                if (activeTypingTimeouts.techBox2) clearTimeout(activeTypingTimeouts.techBox2);
+                if (activeTypingTimeouts.techBox3) clearTimeout(activeTypingTimeouts.techBox3);
+                
+                // Fade out other sections
+                if (aboutSection.classList.contains('active')) {
+                    aboutSection.classList.remove('active');
+                    if (visitedSections.about) {
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                    } else {
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                    }
+                }
+                if (techStackSection.classList.contains('active')) {
+                    techStackSection.classList.remove('active');
+                    if (visitedSections.techStack) {
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                    } else {
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                    }
+                }
+                
+                projectsSection.classList.add('active');
+                
+                if (!visitedSections.projects) {
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    visitedSections.projects = true;
                 }
             } else {
                 // Cancel any active typing
@@ -412,14 +450,14 @@ function attachNavEventListeners() {
                 if (activeTypingTimeouts.techBox2) clearTimeout(activeTypingTimeouts.techBox2);
                 if (activeTypingTimeouts.techBox3) clearTimeout(activeTypingTimeouts.techBox3);
                 
-                // Clear all and hide both
+                // Hide all sections
                 aboutTextElement.innerHTML = '';
                 techBox1.innerHTML = '';
                 techBox2.innerHTML = '';
                 techBox3.innerHTML = '';
-                // Hide both
                 aboutSection.classList.remove('active');
                 techStackSection.classList.remove('active');
+                projectsSection.classList.remove('active');
             }
         });
     });
