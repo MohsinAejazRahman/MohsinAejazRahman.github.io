@@ -10,6 +10,36 @@ const colors = [
     '#e5e685',
 ];
 
+// Track visited sections and their content
+const visitedSections = {
+    about: false,
+    techStack: false
+};
+
+// Store rendered content
+const renderedContent = {
+    about: '',
+    techBox1: '',
+    techBox2: '',
+    techBox3: ''
+};
+
+// Track typing progress for each section (which character index we're on)
+const typingProgress = {
+    about: 0,
+    techBox1: 0,
+    techBox2: 0,
+    techBox3: 0
+};
+
+// Store active typing timeouts so we can cancel them
+const activeTypingTimeouts = {
+    about: null,
+    techBox1: null,
+    techBox2: null,
+    techBox3: null
+};
+
 const aboutText = `\nHi! I'm Mohsin Rahman, a student who enjoys exploring the world of data science, machine learning, and software development. I'm studying Information Engineering (B.Sc.) at the Technical University of Munich (TUM), where I focus on software engineering, algorithms, and data structures. I also study Software Development at 42 Heilbronn, a project-based school that teaches through collaboration and hands-on coding.`;
 
 const navItems_list = ['About', 'Tech Stack', 'Projects', 'Experience', 'Education', 'Contact'];
@@ -22,7 +52,7 @@ const header = document.querySelector('.header');
 const headerTitle = document.getElementById('headerTitle');
 const headerNav = document.getElementById('headerNav');
 
-for (let i = 0; i < 100; i++) {
+for (let i = 0; i < 625; i++) {
     const cell = document.createElement('div');
     cell.className = 'cell';
     grid.appendChild(cell);
@@ -35,8 +65,8 @@ function getRandomColor() {
 
 function animateCells() {
     cells.forEach((cell, index) => {
-        const row = Math.floor(index / 10);
-        const col = index % 10;
+        const row = Math.floor(index / 25);
+        const col = index % 25;
         const delay = (row + col) * 100;
         const duration = 3000 + Math.random() * 4000;
         
@@ -123,9 +153,19 @@ header.style.pointerEvents = 'none';
 welcomeAnimation();
 
 // Typing animation function for general text
-function typeText(element, text, speed = 20) {
-    element.innerHTML = '';
-    let index = 0;
+function typeText(element, text, speed = 20, storageKey = null, resumeProgress = false) {
+    // Cancel any existing typing animation for this element
+    if (storageKey && activeTypingTimeouts[storageKey]) {
+        clearTimeout(activeTypingTimeouts[storageKey]);
+    }
+    
+    // Determine starting index
+    let index = resumeProgress && storageKey ? typingProgress[storageKey] : 0;
+    
+    // Clear element only if starting fresh, otherwise preserve what's typed so far
+    if (index === 0) {
+        element.innerHTML = '';
+    }
     
     function type() {
         if (index < text.length) {
@@ -133,15 +173,35 @@ function typeText(element, text, speed = 20) {
             // Convert newlines to <br> tags
             displayText = displayText.replace(/\n/g, '<br>');
             element.innerHTML = displayText + '<span class="typing-cursor"></span>';
+            
+            // Save progress
+            if (storageKey) {
+                typingProgress[storageKey] = index + 1;
+            }
+            
             index++;
-            setTimeout(type, speed);
+            const timeout = setTimeout(type, speed);
+            
+            // Store the timeout so we can cancel it
+            if (storageKey) {
+                activeTypingTimeouts[storageKey] = timeout;
+            }
         } else {
             let displayText = text.replace(/\n/g, '<br>');
-            element.innerHTML = displayText + '<span class="typing-cursor"></span>';
+            // Remove cursor after typing completes, just show text
+            element.innerHTML = displayText;
+            // Store the rendered content
+            if (storageKey) {
+                renderedContent[storageKey] = displayText;
+                activeTypingTimeouts[storageKey] = null;
+            }
         }
     }
     
-    setTimeout(type, 500);
+    const initialTimeout = setTimeout(type, 500);
+    if (storageKey) {
+        activeTypingTimeouts[storageKey] = initialTimeout;
+    }
 }
 
 // Function to animate header title
@@ -238,29 +298,168 @@ async function startHeaderAnimation() {
     // Wait a bit then start typing about text
     await new Promise(resolve => setTimeout(resolve, 300));
     startAboutTextAnimation();
+    
+    // Attach event listeners AFTER nav items are created
+    attachNavEventListeners();
 }
 
 function startAboutTextAnimation() {
-    const navItems = document.querySelectorAll('.header-nav li');
     const aboutTextElement = document.getElementById('aboutText');
-    typeText(aboutTextElement, aboutText);
+    typeText(aboutTextElement, aboutText, 20, 'about');
 }
 
-// Navigation interactivity
-navItems.forEach((item) => {
-    item.addEventListener('click', () => {
-        document.querySelectorAll('.header-nav li').forEach(navItem => navItem.classList.remove('active'));
-        item.classList.add('active');
-        
-        const aboutSection = document.getElementById('aboutSection');
-        if (item.textContent === 'About') {
-            aboutSection.classList.add('active');
-            typeText(document.getElementById('aboutText'), aboutText);
-        } else {
-            aboutSection.classList.remove('active');
-        }
+// Attach nav event listeners
+function attachNavEventListeners() {
+    const navItems = document.querySelectorAll('.header-nav li');
+    
+    navItems.forEach((item) => {
+        item.addEventListener('click', async () => {
+            document.querySelectorAll('.header-nav li').forEach(navItem => navItem.classList.remove('active'));
+            item.classList.add('active');
+            
+            const aboutSection = document.getElementById('aboutSection');
+            const techStackSection = document.getElementById('techStackSection');
+            const aboutTextElement = document.getElementById('aboutText');
+            const techBox1 = document.getElementById('techBox1');
+            const techBox2 = document.getElementById('techBox2');
+            const techBox3 = document.getElementById('techBox3');
+            
+            if (item.textContent === 'About') {
+                // Cancel any active typing in tech stack
+                if (activeTypingTimeouts.techBox1) clearTimeout(activeTypingTimeouts.techBox1);
+                if (activeTypingTimeouts.techBox2) clearTimeout(activeTypingTimeouts.techBox2);
+                if (activeTypingTimeouts.techBox3) clearTimeout(activeTypingTimeouts.techBox3);
+                
+                // Fade out tech stack if visible
+                if (techStackSection.classList.contains('active')) {
+                    techStackSection.classList.remove('active');
+                    // If tech stack was already visited, just disappear (0.5s wait)
+                    if (visitedSections.techStack) {
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                    } else {
+                        // First visit: wait for fade out (2s)
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                    }
+                }
+                
+                // Don't clear text if already visited - keep stored content
+                if (!visitedSections.about) {
+                    aboutTextElement.innerHTML = '';
+                }
+                
+                aboutSection.classList.add('active');
+                
+                // Wait for fade - only 2s if first visit, otherwise instant (already visible)
+                if (!visitedSections.about) {
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    // Mark as visited and type the text (first time only)
+                    visitedSections.about = true;
+                    typeText(aboutTextElement, aboutText, 20, 'about', false);
+                } else if (typingProgress.about < aboutText.length) {
+                    // Resume typing from where we left off
+                    typeText(aboutTextElement, aboutText, 20, 'about', true);
+                } else {
+                    // Typing was already complete, restore rendered content
+                    aboutTextElement.innerHTML = renderedContent.about;
+                }
+            } else if (item.textContent === 'Tech Stack') {
+                // Cancel any active typing in about section
+                if (activeTypingTimeouts.about) clearTimeout(activeTypingTimeouts.about);
+                
+                // If about was already visited, just disappear (0.5s wait)
+                if (visitedSections.about) {
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+                
+                aboutSection.classList.remove('active');
+                
+                // Don't clear tech boxes if already visited - keep stored content
+                if (!visitedSections.techStack) {
+                    techBox1.innerHTML = '';
+                    techBox2.innerHTML = '';
+                    techBox3.innerHTML = '';
+                }
+                
+                // Start tech stack fade in immediately
+                techStackSection.classList.add('active');
+                
+                // Wait for fade - only 2s if first visit, otherwise instant (already visible)
+                if (!visitedSections.techStack) {
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    // Mark as visited and type the text (first time only)
+                    visitedSections.techStack = true;
+                    startTechStackAnimation();
+                } else {
+                    // Check if any typing is incomplete - resume if so
+                    const allComplete = typingProgress.techBox1 >= techBoxTitles[0].length &&
+                                      typingProgress.techBox2 >= techBoxTitles[1].length &&
+                                      typingProgress.techBox3 >= techBoxTitles[2].length;
+                    
+                    if (allComplete) {
+                        // All typing was complete, restore rendered content
+                        techBox1.innerHTML = renderedContent.techBox1;
+                        techBox2.innerHTML = renderedContent.techBox2;
+                        techBox3.innerHTML = renderedContent.techBox3;
+                    } else {
+                        // Resume typing
+                        resumeTechStackAnimation();
+                    }
+                }
+            } else {
+                // Cancel any active typing
+                if (activeTypingTimeouts.about) clearTimeout(activeTypingTimeouts.about);
+                if (activeTypingTimeouts.techBox1) clearTimeout(activeTypingTimeouts.techBox1);
+                if (activeTypingTimeouts.techBox2) clearTimeout(activeTypingTimeouts.techBox2);
+                if (activeTypingTimeouts.techBox3) clearTimeout(activeTypingTimeouts.techBox3);
+                
+                // Clear all and hide both
+                aboutTextElement.innerHTML = '';
+                techBox1.innerHTML = '';
+                techBox2.innerHTML = '';
+                techBox3.innerHTML = '';
+                // Hide both
+                aboutSection.classList.remove('active');
+                techStackSection.classList.remove('active');
+            }
+        });
     });
-});
+}
+
+// Tech Stack Animation
+const techBoxTitles = [
+    'Front End',
+    'Back End',
+    'Tools'
+];
+
+async function startTechStackAnimation() {
+    const storageKeys = ['techBox1', 'techBox2', 'techBox3'];
+    for (let i = 0; i < 3; i++) {
+        const boxElement = document.getElementById(`techBox${i + 1}`);
+        typeText(boxElement, techBoxTitles[i], 30, storageKeys[i], false);
+        await new Promise(resolve => setTimeout(resolve, techBoxTitles[i].length * 30 + 500));
+    }
+}
+
+async function resumeTechStackAnimation() {
+    const storageKeys = ['techBox1', 'techBox2', 'techBox3'];
+    for (let i = 0; i < 3; i++) {
+        const boxElement = document.getElementById(`techBox${i + 1}`);
+        const progress = typingProgress[storageKeys[i]];
+        const textLength = techBoxTitles[i].length;
+        
+        // Only resume if typing was incomplete
+        if (progress < textLength) {
+            typeText(boxElement, techBoxTitles[i], 30, storageKeys[i], true);
+            // Calculate remaining time based on remaining characters
+            const remainingChars = textLength - progress;
+            await new Promise(resolve => setTimeout(resolve, remainingChars * 30 + 500));
+        } else {
+            // Typing was already complete, just show the finished text
+            boxElement.innerHTML = renderedContent[storageKeys[i]];
+        }
+    }
+}
 
 
 
