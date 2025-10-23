@@ -10,6 +10,11 @@ const colors = [
     '#e5e685',
 ];
 
+// Animation Toggle Feature - Initialize early
+let animationsEnabled = true;
+let allTimeouts = [];
+let allIntervals = [];
+
 // Track visited sections and their content
 const visitedSections = {
     about: false,
@@ -56,7 +61,7 @@ const headerNav = document.getElementById('headerNav');
 
 // Optimize grid cell creation with DocumentFragment
 const gridFragment = document.createDocumentFragment();
-for (let i = 0; i < 625; i++) {
+for (let i = 0; i < 50; i++) {
     const cell = document.createElement('div');
     cell.className = 'cell';
     gridFragment.appendChild(cell);
@@ -71,8 +76,8 @@ function getRandomColor() {
 function animateCells() {
     // Create timing data for all cells upfront with linear intervals
     const cellTimings = cells.map((cell, index) => {
-        const row = Math.floor(index / 15);
-        const col = index % 15;
+        const row = Math.floor(index / 10);
+        const col = index % 10;
         return {
             cell: cell,
             delay: (row + col) + 500 + Math.random() * 500,
@@ -103,9 +108,15 @@ const welcomeTextContent = "Hello!";
 const cursorSpan = '<span class="typing-cursor"></span>';
 
 function welcomeAnimation() {
+    if (!animationsEnabled) return;
+    
     setTimeout(() => {
         let index = 0;
         const typeInterval = setInterval(() => {
+            if (!animationsEnabled) {
+                clearInterval(typeInterval);
+                return;
+            }
             if (index < welcomeTextContent.length) {
                 welcomeText.innerHTML = welcomeTextContent.substring(0, index + 1) + cursorSpan;
                 index++;
@@ -120,6 +131,8 @@ function welcomeAnimation() {
 }
 
 function deleteWelcomeText() {
+    if (!animationsEnabled) return;
+    
     let index = welcomeTextContent.length;
     const deleteInterval = setInterval(() => {
         if (index > 0) {
@@ -170,6 +183,16 @@ function typeText(element, text, speed = 20, storageKey = null, resumeProgress =
     // Pre-process text once
     const processedText = text.replace(/\n/g, '<br>');
     
+    // If animations are disabled, show full text immediately
+    if (!animationsEnabled) {
+        element.innerHTML = processedText;
+        if (storageKey) {
+            renderedContent[storageKey] = processedText;
+            typingProgress[storageKey] = text.length;
+        }
+        return;
+    }
+    
     // Determine starting index
     let index = resumeProgress && storageKey ? typingProgress[storageKey] : 0;
     
@@ -179,6 +202,8 @@ function typeText(element, text, speed = 20, storageKey = null, resumeProgress =
     }
     
     function type() {
+        if (!animationsEnabled) return;
+        
         if (index < text.length) {
             // Build display text only once per iteration
             const displayText = processedText.substring(0, index + 1);
@@ -222,6 +247,11 @@ function typeHeaderTitle() {
     
     return new Promise((resolve) => {
         const typeInterval = setInterval(() => {
+            if (!animationsEnabled) {
+                clearInterval(typeInterval);
+                resolve();
+                return;
+            }
             if (index < headerTitleDisplay.length) {
                 headerTitle.innerHTML = headerTitleDisplay.substring(0, index + 1) + cursorSpan;
                 index++;
@@ -256,6 +286,12 @@ async function typeNavItems() {
         
         await new Promise(resolve => {
             const typeItemInterval = setInterval(() => {
+                if (!animationsEnabled) {
+                    clearInterval(typeItemInterval);
+                    li.textContent = itemText;
+                    resolve();
+                    return;
+                }
                 if (itemIndex < itemText.length) {
                     li.innerHTML = itemText.substring(0, itemIndex + 1) + cursorSpan;
                     itemIndex++;
@@ -291,12 +327,18 @@ function showAboutBox() {
 
 // Start header animation sequence
 async function startHeaderAnimation() {
-    // Type header title
-    await typeHeaderTitle();
+    // Show header title instantly (no typing)
+    headerTitle.innerHTML = 'MOHSIN AEJAZ RAHMAN <span class="slash">/</span> Portfolio';
     
-    // Wait a bit then type nav items
-    await new Promise(resolve => setTimeout(resolve, 300));
-    await typeNavItems();
+    // Create and show all nav items instantly (no typing)
+    const navFragment = document.createDocumentFragment();
+    for (let i = 0; i < navItems_list.length; i++) {
+        const li = document.createElement('li');
+        li.textContent = navItems_list[i];
+        if (i === 0) li.classList.add('active');
+        navFragment.appendChild(li);
+    }
+    headerNav.appendChild(navFragment);
     
     // Show about underline (already active)
     await showAboutUnderline();
@@ -305,17 +347,20 @@ async function startHeaderAnimation() {
     await new Promise(resolve => setTimeout(resolve, 300));
     await showAboutBox();
     
-    // Wait a bit then start typing about text
-    await new Promise(resolve => setTimeout(resolve, 300));
-    startAboutTextAnimation();
+    // Show about text instantly (no typing)
+    const aboutTextElement = document.getElementById('aboutText');
+    aboutTextElement.innerHTML = aboutText;
+    visitedSections.about = true;
+    renderedContent.about = aboutText;
+    typingProgress.about = aboutText.length;
     
     // Attach event listeners AFTER nav items are created
     attachNavEventListeners();
 }
 
 function startAboutTextAnimation() {
-    const aboutTextElement = document.getElementById('aboutText');
-    typeText(aboutTextElement, aboutText, 20, 'about');
+    // This function is no longer needed since about text shows instantly
+    // Kept for compatibility if called elsewhere
 }
 
 // Attach nav event listeners
@@ -362,6 +407,11 @@ function attachNavEventListeners() {
                 projectsSection.classList.remove('active');
                 contactSection.classList.remove('active');
                 
+                // If animations are disabled, transition is instant
+                if (!animationsEnabled) {
+                    return;
+                }
+                
                 const waitTime = Math.max(
                     visitedSections.about ? 0 : 500,
                     visitedSections.techStack ? 0 : 500,
@@ -380,9 +430,15 @@ function attachNavEventListeners() {
                 aboutSection.classList.add('active');
                 
                 if (!visitedSections.about) {
-                    await new Promise(resolve => setTimeout(resolve, 2000));
-                    visitedSections.about = true;
-                    typeText(aboutTextElement, aboutText, 20, 'about', false);
+                    // If animations disabled, show immediately; otherwise wait 2000ms
+                    if (!animationsEnabled) {
+                        visitedSections.about = true;
+                        typeText(aboutTextElement, aboutText, 20, 'about', false);
+                    } else {
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                        visitedSections.about = true;
+                        typeText(aboutTextElement, aboutText, 20, 'about', false);
+                    }
                 } else if (typingProgress.about < aboutText.length) {
                     typeText(aboutTextElement, aboutText, 20, 'about', true);
                 } else {
@@ -400,9 +456,15 @@ function attachNavEventListeners() {
                 techStackSection.classList.add('active');
                 
                 if (!visitedSections.techStack) {
-                    await new Promise(resolve => setTimeout(resolve, 2000));
-                    visitedSections.techStack = true;
-                    startTechStackAnimation();
+                    // If animations disabled, show immediately; otherwise wait 2000ms
+                    if (!animationsEnabled) {
+                        visitedSections.techStack = true;
+                        startTechStackAnimation();
+                    } else {
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                        visitedSections.techStack = true;
+                        startTechStackAnimation();
+                    }
                 } else {
                     const allComplete = typingProgress.techBox1 >= techBoxTitles[0].length &&
                                       typingProgress.techBox2 >= techBoxTitles[1].length &&
@@ -459,8 +521,11 @@ async function startTechStackAnimation() {
     const storageKeys = ['techBox1', 'techBox2', 'techBox3'];
     for (let i = 0; i < 3; i++) {
         const boxElement = document.getElementById(`techBox${i + 1}`);
-        typeText(boxElement, techBoxTitles[i], 30, storageKeys[i], false);
-        await new Promise(resolve => setTimeout(resolve, techBoxTitles[i].length * 30 + 500));
+        const title = techBoxTitles[i];
+        boxElement.innerHTML = title;
+        renderedContent[storageKeys[i]] = title;
+        typingProgress[storageKeys[i]] = title.length;
+        visitedSections.techStack = true;
     }
 }
 
@@ -468,21 +533,193 @@ async function resumeTechStackAnimation() {
     const storageKeys = ['techBox1', 'techBox2', 'techBox3'];
     for (let i = 0; i < 3; i++) {
         const boxElement = document.getElementById(`techBox${i + 1}`);
-        const progress = typingProgress[storageKeys[i]];
-        const textLength = techBoxTitles[i].length;
-        
-        // Only resume if typing was incomplete
-        if (progress < textLength) {
-            typeText(boxElement, techBoxTitles[i], 30, storageKeys[i], true);
-            // Calculate remaining time based on remaining characters
-            const remainingChars = textLength - progress;
-            await new Promise(resolve => setTimeout(resolve, remainingChars * 30 + 500));
-        } else {
-            // Typing was already complete, just show the finished text
-            boxElement.innerHTML = renderedContent[storageKeys[i]];
-        }
+        const title = techBoxTitles[i];
+        boxElement.innerHTML = title;
+        renderedContent[storageKeys[i]] = title;
+        typingProgress[storageKeys[i]] = title.length;
     }
 }
+
+// Animation Toggle Feature
+// Animation Toggle Feature - Functions
+const animationToggle = document.getElementById('animationToggle');
+
+function updateToggleText() {
+    animationToggle.querySelector('span').innerHTML = animationsEnabled 
+        ? 'PRESS <i>ESC</i> TO DISABLE ANIMATIONS' 
+        : 'PRESS <i>ESC</i> TO ENABLE ANIMATIONS';
+}
+
+function disableAllAnimations() {
+    animationsEnabled = false;
+    
+    // Add CSS to disable all animations and transitions
+    let disableStyle = document.getElementById('disable-animations-style');
+    if (!disableStyle) {
+        disableStyle = document.createElement('style');
+        disableStyle.id = 'disable-animations-style';
+        disableStyle.textContent = `
+            * {
+                animation: none !important;
+                transition: none !important;
+                animation-play-state: paused !important;
+            }
+            @keyframes blink {
+                0%, 49% { background-color: transparent; }
+                50%, 100% { background-color: transparent; }
+            }
+        `;
+        document.head.appendChild(disableStyle);
+    }
+    
+    // Cancel all active timeouts and intervals
+    for (let i = 1; i < 10000; i++) {
+        clearTimeout(i);
+        clearInterval(i);
+    }
+    
+    // Cancel specific typing timeouts
+    clearTimeout(activeTypingTimeouts.about);
+    clearTimeout(activeTypingTimeouts.techBox1);
+    clearTimeout(activeTypingTimeouts.techBox2);
+    clearTimeout(activeTypingTimeouts.techBox3);
+    
+    // Remove typing cursor from all elements
+    const cursors = document.querySelectorAll('.typing-cursor');
+    cursors.forEach(cursor => cursor.remove());
+    
+    // Get all section elements
+    const welcomeOverlay = document.getElementById('welcomeOverlay');
+    const header = document.querySelector('.header');
+    const headerTitle = document.getElementById('headerTitle');
+    const headerNav = document.getElementById('headerNav');
+    const aboutSection = document.getElementById('aboutSection');
+    const aboutText = document.getElementById('aboutText');
+    const techStackSection = document.getElementById('techStackSection');
+    const techBox1 = document.getElementById('techBox1');
+    const techBox2 = document.getElementById('techBox2');
+    const techBox3 = document.getElementById('techBox3');
+    const projectsSection = document.getElementById('projectsSection');
+    const contactSection = document.getElementById('contactSection');
+    
+    // Hide welcome overlay completely
+    if (welcomeOverlay) {
+        welcomeOverlay.style.visibility = 'hidden';
+        welcomeOverlay.style.opacity = '0';
+        welcomeOverlay.style.pointerEvents = 'none';
+    }
+    
+    // Show header with full title
+    if (header) {
+        header.style.opacity = '1';
+        header.style.visibility = 'visible';
+        header.style.pointerEvents = 'auto';
+    }
+    
+    if (headerTitle) {
+        headerTitle.innerHTML = 'MOHSIN AEJAZ RAHMAN <span class="slash">/</span> Portfolio';
+    }
+    
+    // Create and show all nav items
+    if (headerNav && headerNav.children.length === 0) {
+        const navItems_list = ['About', 'Tech Stack', 'Projects', 'Experience', 'Education', 'Contact'];
+        const navFragment = document.createDocumentFragment();
+        navItems_list.forEach((item, index) => {
+            const li = document.createElement('li');
+            li.textContent = item;
+            if (index === 0) li.classList.add('active');
+            navFragment.appendChild(li);
+        });
+        headerNav.appendChild(navFragment);
+        attachNavEventListeners();
+    }
+    
+    // ONLY show about section, hide all others
+    if (aboutSection) {
+        aboutSection.style.visibility = 'visible';
+        aboutSection.style.opacity = '1';
+        aboutSection.classList.add('active');
+    }
+    
+    if (aboutText) {
+        aboutText.innerHTML = `Hi! I'm Mohsin Rahman, a student who enjoys exploring the world of data science, machine learning, and software development. I'm studying Information Engineering (B.Sc.) at the Technical University of Munich (TUM), where I focus on software engineering, algorithms, and data structures. I also study Software Development at 42 Heilbronn, a project-based school that teaches through collaboration and hands-on coding.`;
+        visitedSections.about = true;
+    }
+    
+    // Hide tech stack section
+    if (techStackSection) {
+        techStackSection.style.visibility = 'hidden';
+        techStackSection.style.opacity = '0';
+        techStackSection.classList.remove('active');
+    }
+    
+    const techBoxTitles = ['Front End', 'Back End', 'Tools'];
+    if (techBox1) {
+        techBox1.innerHTML = techBoxTitles[0];
+        renderedContent.techBox1 = techBoxTitles[0];
+        typingProgress.techBox1 = techBoxTitles[0].length;
+    }
+    if (techBox2) {
+        techBox2.innerHTML = techBoxTitles[1];
+        renderedContent.techBox2 = techBoxTitles[1];
+        typingProgress.techBox2 = techBoxTitles[1].length;
+    }
+    if (techBox3) {
+        techBox3.innerHTML = techBoxTitles[2];
+        renderedContent.techBox3 = techBoxTitles[2];
+        typingProgress.techBox3 = techBoxTitles[2].length;
+    }
+    visitedSections.techStack = true;
+    
+    // Hide projects section
+    if (projectsSection) {
+        projectsSection.style.visibility = 'hidden';
+        projectsSection.style.opacity = '0';
+        projectsSection.classList.remove('active');
+    }
+    
+    // Hide contact section
+    if (contactSection) {
+        contactSection.style.visibility = 'hidden';
+        contactSection.style.opacity = '0';
+        contactSection.classList.remove('active');
+    }
+    
+    updateToggleText();
+}
+
+function enableAllAnimations() {
+    animationsEnabled = true;
+    
+    // Remove the disable animations style
+    const disableStyle = document.getElementById('disable-animations-style');
+    if (disableStyle) {
+        disableStyle.remove();
+    }
+    
+    // Restart animations by reloading the page
+    // Or you could restart specific animations here
+    
+    updateToggleText();
+}
+
+function toggleAnimations() {
+    if (animationsEnabled) {
+        disableAllAnimations();
+    } else {
+        enableAllAnimations();
+    }
+}
+
+// Listen for ESC key press
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        toggleAnimations();
+    }
+});
+
+// Listen for toggle click
+animationToggle.addEventListener('click', toggleAnimations);
 
 
 
