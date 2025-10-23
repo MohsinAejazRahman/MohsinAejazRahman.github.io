@@ -14,7 +14,8 @@ const colors = [
 const visitedSections = {
     about: false,
     techStack: false,
-    projects: false
+    projects: false,
+    contact: false
 };
 
 // Store rendered content
@@ -443,12 +444,55 @@ function attachNavEventListeners() {
                     await new Promise(resolve => setTimeout(resolve, 2000));
                     visitedSections.projects = true;
                 }
-            } else {
+            } else if (item.textContent === 'Contact') {
                 // Cancel any active typing
                 if (activeTypingTimeouts.about) clearTimeout(activeTypingTimeouts.about);
                 if (activeTypingTimeouts.techBox1) clearTimeout(activeTypingTimeouts.techBox1);
                 if (activeTypingTimeouts.techBox2) clearTimeout(activeTypingTimeouts.techBox2);
                 if (activeTypingTimeouts.techBox3) clearTimeout(activeTypingTimeouts.techBox3);
+                
+                const contactSection = document.getElementById('contactSection');
+                
+                // Fade out other sections
+                if (aboutSection.classList.contains('active')) {
+                    aboutSection.classList.remove('active');
+                    if (visitedSections.about) {
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                    } else {
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                    }
+                }
+                if (techStackSection.classList.contains('active')) {
+                    techStackSection.classList.remove('active');
+                    if (visitedSections.techStack) {
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                    } else {
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                    }
+                }
+                if (projectsSection.classList.contains('active')) {
+                    projectsSection.classList.remove('active');
+                    if (visitedSections.projects) {
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                    } else {
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                    }
+                }
+                
+                contactSection.classList.add('active');
+                
+                if (!visitedSections.contact) {
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    visitedSections.contact = true;
+                }
+            } else {
+                // Cancel any active typing
+                if (activeTypingTimeouts.about) clearTimeout(activeTypingTimeouts.about);
+                if (activeTypingTimeouts.techBox1) clearTimeout(activeTypingTimeouts.techBox1);
+                if (activeTypingTimeouts.techBox2) clearTimeout(activeTypingTimeouts.techBox2);
+                if (activeTypingTimeouts.techBox3) clearTimeout(activeTimingTimeouts.techBox3);
+                
+                const contactSection = document.getElementById('contactSection');
                 
                 // Hide all sections
                 aboutTextElement.innerHTML = '';
@@ -458,6 +502,7 @@ function attachNavEventListeners() {
                 aboutSection.classList.remove('active');
                 techStackSection.classList.remove('active');
                 projectsSection.classList.remove('active');
+                contactSection.classList.remove('active');
             }
         });
     });
