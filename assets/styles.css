@@ -145,13 +145,13 @@ body {
     width: 80%;
     max-width: 700px;
     z-index: 15;
-    display: none;
+    visibility: hidden;
     opacity: 0;
-    transition: opacity 0.5s ease-in-out;
+    transition: opacity 2s ease-in-out, visibility 2s ease-in-out;
 }
 
 .about-container.active {
-    display: block;
+    visibility: visible;
     opacity: 1;
 }
 

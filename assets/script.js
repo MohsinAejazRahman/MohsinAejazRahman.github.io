@@ -10,13 +10,17 @@ const colors = [
     '#e5e685',
 ];
 
-const aboutText = `Hi! I'm Mohsin Rahman, a student who enjoys exploring the world of data science, machine learning, and software development. I'm studying Information Engineering (B.Sc.) at the Technical University of Munich (TUM), where I focus on software engineering, algorithms, and data structures. I also study Software Development at 42 Heilbronn, a project-based school that teaches through collaboration and hands-on coding.`;
+const aboutText = `\nHi! I'm Mohsin Rahman, a student who enjoys exploring the world of data science, machine learning, and software development. I'm studying Information Engineering (B.Sc.) at the Technical University of Munich (TUM), where I focus on software engineering, algorithms, and data structures. I also study Software Development at 42 Heilbronn, a project-based school that teaches through collaboration and hands-on coding.`;
+
+const navItems_list = ['About', 'Tech Stack', 'Projects', 'Experience', 'Education', 'Contact'];
 
 const grid = document.getElementById('grid');
 const cells = [];
 const welcomeOverlay = document.getElementById('welcomeOverlay');
 const welcomeText = document.getElementById('welcomeText');
 const header = document.querySelector('.header');
+const headerTitle = document.getElementById('headerTitle');
+const headerNav = document.getElementById('headerNav');
 
 for (let i = 0; i < 100; i++) {
     const cell = document.createElement('div');
@@ -99,10 +103,6 @@ function fadeOutWelcome() {
     header.style.opacity = '1';
     header.style.pointerEvents = 'auto';
     
-    // Show about section with same fade technique
-    const aboutSection = document.getElementById('aboutSection');
-    aboutSection.classList.add('active');
-    
     // Fade out overlay
     welcomeOverlay.style.transition = 'opacity 0.5s ease-in-out';
     welcomeOverlay.style.opacity = '0';
@@ -110,6 +110,8 @@ function fadeOutWelcome() {
     // Remove welcome overlay after fade
     setTimeout(() => {
         welcomeOverlay.remove();
+        // Start header animation sequence
+        startHeaderAnimation();
     }, 700);
 }
 
@@ -120,9 +122,7 @@ header.style.pointerEvents = 'none';
 // Start welcome animation on page load
 welcomeAnimation();
 
-// Glass shader setup removed - using CSS glass morphism instead
-
-// Typing animation function
+// Typing animation function for general text
 function typeText(element, text, speed = 20) {
     element.innerHTML = '';
     let index = 0;
@@ -144,29 +144,118 @@ function typeText(element, text, speed = 20) {
     setTimeout(type, 500);
 }
 
-// Navigation interactivity
-const navItems = document.querySelectorAll('.header-nav li');
-const aboutSection = document.getElementById('aboutSection');
-const aboutTextElement = document.getElementById('aboutText');
-
-// Start typing animation after fade-in completes (0.5s) + some delay for visual effect
-setTimeout(() => {
-    navItems.forEach((item, index) => {
-        if (index === 0) {
-            item.classList.add('active');
-        }
+// Function to animate header title
+function typeHeaderTitle() {
+    const titleText = 'MOHSIN AEJAZ RAHMAN <span class="slash">/</span> Portfolio';
+    const titleDisplay = 'MOHSIN AEJAZ RAHMAN / Portfolio';
+    let index = 0;
+    
+    return new Promise((resolve) => {
+        const typeInterval = setInterval(() => {
+            if (index < titleDisplay.length) {
+                let displayText = titleDisplay.substring(0, index + 1);
+                headerTitle.innerHTML = displayText + '<span class="typing-cursor"></span>';
+                index++;
+            } else {
+                clearInterval(typeInterval);
+                headerTitle.innerHTML = titleText;
+                resolve();
+            }
+        }, 30);
     });
-    typeText(aboutTextElement, aboutText);
-}, 5500);
+}
 
+// Function to animate nav items
+async function typeNavItems() {
+    for (let i = 0; i < navItems_list.length; i++) {
+        const li = document.createElement('li');
+        if (i === 0) li.classList.add('active');
+        
+        navItems_list.forEach((item, index) => {
+            if (index === i) {
+                // Type this item
+                let itemText = item;
+                let itemIndex = 0;
+                let displayContent = '';
+                
+                const typeItemInterval = setInterval(() => {
+                    if (itemIndex < itemText.length) {
+                        displayContent = itemText.substring(0, itemIndex + 1);
+                        li.innerHTML = displayContent + '<span class="typing-cursor"></span>';
+                        itemIndex++;
+                    } else {
+                        clearInterval(typeItemInterval);
+                        li.innerHTML = itemText;
+                    }
+                }, 30);
+            }
+        });
+        
+        li.textContent = navItems_list[i];
+        headerNav.appendChild(li);
+        
+        // Wait for this item to finish typing
+        await new Promise(resolve => setTimeout(resolve, navItems_list[i].length * 30 + 100));
+    }
+}
+
+// Function to show underline under About
+function showAboutUnderline() {
+    const aboutItem = headerNav.querySelector('li.active');
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            // The ::after pseudo-element will show via CSS
+            resolve();
+        }, 300);
+    });
+}
+
+// Function to show about glass box
+function showAboutBox() {
+    const aboutSection = document.getElementById('aboutSection');
+    return new Promise((resolve) => {
+        aboutSection.classList.add('active');
+        setTimeout(resolve, 500); // Wait for fade transition
+    });
+}
+
+// Start header animation sequence
+async function startHeaderAnimation() {
+    // Type header title
+    await typeHeaderTitle();
+    
+    // Wait a bit then type nav items
+    await new Promise(resolve => setTimeout(resolve, 300));
+    await typeNavItems();
+    
+    // Show about underline (already active)
+    await showAboutUnderline();
+    
+    // Wait a bit then show about box
+    await new Promise(resolve => setTimeout(resolve, 300));
+    await showAboutBox();
+    
+    // Wait a bit then start typing about text
+    await new Promise(resolve => setTimeout(resolve, 300));
+    startAboutTextAnimation();
+}
+
+function startAboutTextAnimation() {
+    const navItems = document.querySelectorAll('.header-nav li');
+    const aboutTextElement = document.getElementById('aboutText');
+    typeText(aboutTextElement, aboutText);
+}
+
+// Navigation interactivity
 navItems.forEach((item) => {
     item.addEventListener('click', () => {
-        navItems.forEach(navItem => navItem.classList.remove('active'));
+        document.querySelectorAll('.header-nav li').forEach(navItem => navItem.classList.remove('active'));
         item.classList.add('active');
         
+        const aboutSection = document.getElementById('aboutSection');
         if (item.textContent === 'About') {
             aboutSection.classList.add('active');
-            typeText(aboutTextElement, aboutText);
+            typeText(document.getElementById('aboutText'), aboutText);
         } else {
             aboutSection.classList.remove('active');
         }
