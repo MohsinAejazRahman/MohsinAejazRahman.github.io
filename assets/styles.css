@@ -603,3 +603,124 @@ body {
     text-align: left;
     vertical-align: top;
 }
+
+/* Education Section */
+.education-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 700px;
+    z-index: 15;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
+}
+
+.education-container.active {
+    visibility: visible;
+    opacity: 1;
+}
+
+.education-container.instant {
+    transition: opacity 0s, visibility 0s;
+}
+
+.education-container:not(.active) {
+    transition: opacity 0s, visibility 0s;
+}
+
+.education-box {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2vw;
+    margin: 0 auto;
+}
+
+.education-column {
+    background: rgba(255, 255, 255, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 16px;
+    padding: 2.5vw;
+    position: relative;
+    overflow: hidden;
+    z-index: 12;
+    backdrop-filter: blur(0.1px) saturate(180%);
+    box-shadow: 0 8px 32px 0 rgba(255, 255, 135, 0.37);
+    text-align: center;
+    color: #FFFFFF;
+    font-family: 'Alexandria', sans-serif;
+    min-height: 60vh;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding-top: 1vw;
+}
+
+.education-column::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, 
+        rgba(255, 255, 255, 0.1) 0%,
+        rgba(255, 255, 255, 0.05) 50%,
+        transparent 100%);
+    pointer-events: none;
+    z-index: 11;
+}
+
+.education-grid {
+    display: none;
+}
+
+.education-title-wrapper {
+    width: 100%;
+    text-align: center;
+    margin-bottom: 0.1vw;
+    margin-top: 0.1vw;
+    position: relative;
+    z-index: 13;
+}
+
+.education-title {
+    font-size: 0.9vw;
+    font-weight: 600;
+}
+
+.education-content {
+    width: 100%;
+    text-align: left;
+    position: relative;
+    z-index: 13;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+}
+
+.education-school {
+    font-size: 0.8vw;
+    font-weight: 600;
+    margin-bottom: 0.02vw;
+    color: #FFFFFF;
+}
+
+.education-date {
+    font-size: 0.7vw;
+    font-weight: 400;
+    margin-top: 0.02vw;
+    margin-bottom: 0.08vw;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.education-description {
+    font-size: 0.7vw;
+    font-weight: 400;
+    line-height: 1.4;
+    color: rgba(255, 255, 255, 0.85);
+}

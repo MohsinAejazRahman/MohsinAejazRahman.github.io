@@ -20,7 +20,8 @@ const visitedSections = {
     about: false,
     techStack: false,
     projects: false,
-    contact: false
+    contact: false,
+    education: false
 };
 
 // Store rendered content
@@ -438,6 +439,7 @@ function attachNavEventListeners() {
     const techStackSection = document.getElementById('techStackSection');
     const projectsSection = document.getElementById('projectsSection');
     const contactSection = document.getElementById('contactSection');
+    const educationSection = document.getElementById('educationSection');
     const aboutTextElement = document.getElementById('aboutText');
     const techBox1 = document.getElementById('techBox1');
     const techBox2 = document.getElementById('techBox2');
@@ -447,8 +449,9 @@ function attachNavEventListeners() {
         about: aboutSection,
         techStack: techStackSection,
         projects: projectsSection,
-        contact: contactSection
-    };
+        contact: contactSection,
+        education: educationSection
+}
     
     const techBoxes = [techBox1, techBox2, techBox3];
     
@@ -474,6 +477,7 @@ function attachNavEventListeners() {
                 techStackSection.classList.remove('active');
                 projectsSection.classList.remove('active');
                 contactSection.classList.remove('active');
+                educationSection.classList.remove('active');
                 
                 // If animations are disabled, transition is instant
                 if (!animationsEnabled) {
@@ -522,12 +526,21 @@ function attachNavEventListeners() {
                     await new Promise(resolve => setTimeout(resolve, 500));
                     visitedSections.contact = true;
                 }
+            } else if (itemText === 'Education') {
+                await hideAllSections();
+                educationSection.classList.add('active');
+                
+                if (!visitedSections.education) {
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    visitedSections.education = true;
+                }
             } else {
-                // For Experience, Education, or other sections
+                // For Experience or other sections
                 aboutSection.classList.remove('active');
                 techStackSection.classList.remove('active');
                 projectsSection.classList.remove('active');
                 contactSection.classList.remove('active');
+                educationSection.classList.remove('active');
             }
         });
     });
