@@ -21,6 +21,7 @@ const visitedSections = {
     techStack: false,
     projects: false,
     contact: false,
+    experience: false,
     education: false
 };
 
@@ -439,6 +440,7 @@ function attachNavEventListeners() {
     const techStackSection = document.getElementById('techStackSection');
     const projectsSection = document.getElementById('projectsSection');
     const contactSection = document.getElementById('contactSection');
+    const experienceSection = document.getElementById('experienceSection');
     const educationSection = document.getElementById('educationSection');
     const aboutTextElement = document.getElementById('aboutText');
     const techBox1 = document.getElementById('techBox1');
@@ -450,6 +452,7 @@ function attachNavEventListeners() {
         techStack: techStackSection,
         projects: projectsSection,
         contact: contactSection,
+        experience: experienceSection,
         education: educationSection
 }
     
@@ -477,6 +480,7 @@ function attachNavEventListeners() {
                 techStackSection.classList.remove('active');
                 projectsSection.classList.remove('active');
                 contactSection.classList.remove('active');
+                experienceSection.classList.remove('active');
                 educationSection.classList.remove('active');
                 
                 // If animations are disabled, transition is instant
@@ -526,6 +530,14 @@ function attachNavEventListeners() {
                     await new Promise(resolve => setTimeout(resolve, 500));
                     visitedSections.contact = true;
                 }
+            } else if (itemText === 'Experience') {
+                await hideAllSections();
+                experienceSection.classList.add('active');
+                
+                if (!visitedSections.experience) {
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    visitedSections.experience = true;
+                }
             } else if (itemText === 'Education') {
                 await hideAllSections();
                 educationSection.classList.add('active');
@@ -540,6 +552,7 @@ function attachNavEventListeners() {
                 techStackSection.classList.remove('active');
                 projectsSection.classList.remove('active');
                 contactSection.classList.remove('active');
+                experienceSection.classList.remove('active');
                 educationSection.classList.remove('active');
             }
         });
