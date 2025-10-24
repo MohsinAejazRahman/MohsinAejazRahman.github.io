@@ -51,7 +51,7 @@ const aboutText = `Hi! I'm Mohsin Rahman, a student who enjoys exploring the wor
 
 const navItems_list = ['About', 'Tech Stack', 'Projects', 'Experience', 'Education', 'Contact'];
 
-const grid = document.getElementById('grid');
+const   grid = document.getElementById('grid');
 const cells = [];
 const welcomeOverlay = document.getElementById('welcomeOverlay');
 const welcomeText = document.getElementById('welcomeText');
@@ -553,136 +553,20 @@ function updateToggleText() {
 function disableAllAnimations() {
     animationsEnabled = false;
     
-    // Add CSS to disable all animations and transitions
+    // Add CSS to disable only the fade-in transitions for section containers
     let disableStyle = document.getElementById('disable-animations-style');
     if (!disableStyle) {
         disableStyle = document.createElement('style');
         disableStyle.id = 'disable-animations-style';
         disableStyle.textContent = `
-            * {
-                animation: none !important;
+            .about-container.active,
+            .tech-stack-container.active,
+            .projects-container.active,
+            .contact-container.active {
                 transition: none !important;
-                animation-play-state: paused !important;
-            }
-            @keyframes blink {
-                0%, 49% { background-color: transparent; }
-                50%, 100% { background-color: transparent; }
             }
         `;
         document.head.appendChild(disableStyle);
-    }
-    
-    // Cancel all active timeouts and intervals
-    for (let i = 1; i < 10000; i++) {
-        clearTimeout(i);
-        clearInterval(i);
-    }
-    
-    // Cancel specific typing timeouts
-    clearTimeout(activeTypingTimeouts.about);
-    clearTimeout(activeTypingTimeouts.techBox1);
-    clearTimeout(activeTypingTimeouts.techBox2);
-    clearTimeout(activeTypingTimeouts.techBox3);
-    
-    // Remove typing cursor from all elements
-    const cursors = document.querySelectorAll('.typing-cursor');
-    cursors.forEach(cursor => cursor.remove());
-    
-    // Get all section elements
-    const welcomeOverlay = document.getElementById('welcomeOverlay');
-    const header = document.querySelector('.header');
-    const headerTitle = document.getElementById('headerTitle');
-    const headerNav = document.getElementById('headerNav');
-    const aboutSection = document.getElementById('aboutSection');
-    const aboutText = document.getElementById('aboutText');
-    const techStackSection = document.getElementById('techStackSection');
-    const techBox1 = document.getElementById('techBox1');
-    const techBox2 = document.getElementById('techBox2');
-    const techBox3 = document.getElementById('techBox3');
-    const projectsSection = document.getElementById('projectsSection');
-    const contactSection = document.getElementById('contactSection');
-    
-    // Hide welcome overlay completely
-    if (welcomeOverlay) {
-        welcomeOverlay.style.visibility = 'hidden';
-        welcomeOverlay.style.opacity = '0';
-        welcomeOverlay.style.pointerEvents = 'none';
-    }
-    
-    // Show header with full title
-    if (header) {
-        header.style.opacity = '1';
-        header.style.visibility = 'visible';
-        header.style.pointerEvents = 'auto';
-    }
-    
-    if (headerTitle) {
-        headerTitle.innerHTML = 'MOHSIN AEJAZ RAHMAN <span class="slash">/</span> Portfolio';
-    }
-    
-    // Create and show all nav items
-    if (headerNav && headerNav.children.length === 0) {
-        const navItems_list = ['About', 'Tech Stack', 'Projects', 'Experience', 'Education', 'Contact'];
-        const navFragment = document.createDocumentFragment();
-        navItems_list.forEach((item, index) => {
-            const li = document.createElement('li');
-            li.textContent = item;
-            if (index === 0) li.classList.add('active');
-            navFragment.appendChild(li);
-        });
-        headerNav.appendChild(navFragment);
-        attachNavEventListeners();
-    }
-    
-    // ONLY show about section, hide all others
-    if (aboutSection) {
-        aboutSection.style.visibility = 'visible';
-        aboutSection.style.opacity = '1';
-        aboutSection.classList.add('active');
-    }
-    
-    if (aboutText) {
-        aboutText.innerHTML = `Hi! I'm Mohsin Rahman, a student who enjoys exploring the world of data science, machine learning, and software development. I'm studying Information Engineering (B.Sc.) at the Technical University of Munich (TUM), where I focus on software engineering, algorithms, and data structures. I also study Software Development at 42 Heilbronn, a project-based school that teaches through collaboration and hands-on coding.`;
-        visitedSections.about = true;
-    }
-    
-    // Hide tech stack section
-    if (techStackSection) {
-        techStackSection.style.visibility = 'hidden';
-        techStackSection.style.opacity = '0';
-        techStackSection.classList.remove('active');
-    }
-    
-    const techBoxTitles = ['Front End', 'Back End', 'Tools'];
-    if (techBox1) {
-        techBox1.innerHTML = techBoxTitles[0];
-        renderedContent.techBox1 = techBoxTitles[0];
-        typingProgress.techBox1 = techBoxTitles[0].length;
-    }
-    if (techBox2) {
-        techBox2.innerHTML = techBoxTitles[1];
-        renderedContent.techBox2 = techBoxTitles[1];
-        typingProgress.techBox2 = techBoxTitles[1].length;
-    }
-    if (techBox3) {
-        techBox3.innerHTML = techBoxTitles[2];
-        renderedContent.techBox3 = techBoxTitles[2];
-        typingProgress.techBox3 = techBoxTitles[2].length;
-    }
-    visitedSections.techStack = true;
-    
-    // Hide projects section
-    if (projectsSection) {
-        projectsSection.style.visibility = 'hidden';
-        projectsSection.style.opacity = '0';
-        projectsSection.classList.remove('active');
-    }
-    
-    // Hide contact section
-    if (contactSection) {
-        contactSection.style.visibility = 'hidden';
-        contactSection.style.opacity = '0';
-        contactSection.classList.remove('active');
     }
     
     updateToggleText();
@@ -696,9 +580,6 @@ function enableAllAnimations() {
     if (disableStyle) {
         disableStyle.remove();
     }
-    
-    // Restart animations by reloading the page
-    // Or you could restart specific animations here
     
     updateToggleText();
 }

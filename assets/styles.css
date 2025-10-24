@@ -573,3 +573,30 @@ body {
     text-align: left;
     vertical-align: top;
 }
+
+/* Animation Toggle */
+.animation-toggle {
+    position: fixed;
+    bottom: 1.5vh;
+    right: 1.5vw;
+    color: #FFFFFF;
+    font-family: 'Alexandria', sans-serif;
+    font-size: 1vw;
+    opacity: 0.7;
+    cursor: pointer;
+    transition: opacity 0.3s ease;
+    z-index: 50;
+    user-select: none;
+}
+
+.animation-toggle:hover {
+    opacity: 1;
+}
+
+.animation-toggle i {
+    font-style: italic;
+}
+
+.animation-toggle strong {
+    font-weight: 700;
+}
