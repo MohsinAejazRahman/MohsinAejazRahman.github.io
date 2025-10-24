@@ -71,7 +71,7 @@ body {
     list-style: none;
     display: flex;
     flex-direction: column;
-    gap: 1.8vh;
+    gap: 2.5vh;
 }
 
 .header-nav li {
@@ -144,11 +144,13 @@ body {
     left: 50%;
     transform: translate(-50%, -50%);
     width: 80%;
-    max-width: 700px;
+    max-width: 900px;
+    min-width: 900px;
+    height: auto;
     z-index: 15;
     visibility: hidden;
     opacity: 0;
-    transition: opacity 2s ease-in-out, visibility 2s ease-in-out;
+    transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
 }
 
 .about-container.active {
@@ -174,6 +176,7 @@ body {
     z-index: 12;
     backdrop-filter: blur(0.1px) saturate(180%);
     box-shadow: 0 8px 32px 0 rgba(255, 255, 135, 0.37);
+    min-height: 25vh;
 }
 
 .about-box::before {
@@ -281,7 +284,7 @@ body {
     z-index: 15;
     visibility: hidden;
     opacity: 0;
-    transition: opacity 2s ease-in-out, visibility 2s ease-in-out;
+    transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
 }
 
 .tech-stack-container.active {
@@ -350,6 +353,33 @@ body {
     width: 100%;
 }
 
+.tech-title {
+    font-size: 1vw;
+    font-weight: 600;
+    margin-bottom: 0.5vw;
+}
+
+.tech-images {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8vw;
+    justify-content: center;
+    align-items: center;
+}
+
+.tech-icon {
+    width: 3vw;
+    height: 3vw;
+    object-fit: contain;
+    filter: drop-shadow(0 0 0.5vw rgba(255, 255, 255, 0.3));
+    transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+.tech-icon:hover {
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 1vw rgba(255, 255, 255, 0.6));
+}
+
 /* Projects Section */
 .projects-container {
     position: absolute;
@@ -361,7 +391,7 @@ body {
     z-index: 15;
     visibility: hidden;
     opacity: 0;
-    transition: opacity 2s ease-in-out, visibility 2s ease-in-out;
+    transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
 }
 
 .projects-container.active {
@@ -448,7 +478,7 @@ body {
     z-index: 15;
     visibility: hidden;
     opacity: 0;
-    transition: opacity 2s ease-in-out, visibility 2s ease-in-out;
+    transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
 }
 
 .contact-container.active {
@@ -572,31 +602,4 @@ body {
 .contact-textarea {
     text-align: left;
     vertical-align: top;
-}
-
-/* Animation Toggle */
-.animation-toggle {
-    position: fixed;
-    bottom: 1.5vh;
-    right: 1.5vw;
-    color: #FFFFFF;
-    font-family: 'Alexandria', sans-serif;
-    font-size: 1vw;
-    opacity: 0.7;
-    cursor: pointer;
-    transition: opacity 0.3s ease;
-    z-index: 50;
-    user-select: none;
-}
-
-.animation-toggle:hover {
-    opacity: 1;
-}
-
-.animation-toggle i {
-    font-style: italic;
-}
-
-.animation-toggle strong {
-    font-weight: 700;
 }

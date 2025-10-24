@@ -61,7 +61,7 @@ const headerNav = document.getElementById('headerNav');
 
 // Optimize grid cell creation with DocumentFragment
 const gridFragment = document.createDocumentFragment();
-for (let i = 0; i < 50; i++) {
+for (let i = 0; i < 100; i++) {
     const cell = document.createElement('div');
     cell.className = 'cell';
     gridFragment.appendChild(cell);
@@ -107,13 +107,56 @@ animateCells();
 const welcomeTextContent = "Hello!";
 const cursorSpan = '<span class="typing-cursor"></span>';
 
+let skipWelcomeAnimation = false;
+
 function welcomeAnimation() {
     if (!animationsEnabled) return;
     
+    // Show skip instruction
+    const skipInstruction = document.createElement('div');
+    skipInstruction.id = 'skipInstruction';
+    skipInstruction.style.cssText = `
+        position: fixed;
+        top: 55%;
+        left: 50%;
+        transform: translateX(-50%);
+        color: rgba(255, 255, 255, 0.6);
+        font-family: 'Alexandria', sans-serif;
+        font-size: 0.9vw;
+        text-align: center;
+        z-index: 99;
+    `;
+    skipInstruction.innerHTML = 'Press <i style="font-style: italic;"><strong>ENTER</strong></i> to skip';
+    document.body.appendChild(skipInstruction);
+    
+    // Function to remove skip instruction and clean up
+    const removeSkipInstruction = () => {
+        if (skipInstruction.parentNode) {
+            skipInstruction.remove();
+        }
+        document.removeEventListener('keydown', handleEnter);
+    };
+    
+    // Listen for Enter key to skip
+    const handleEnter = (e) => {
+        if (e.key === 'Enter') {
+            skipWelcomeAnimation = true;
+            removeSkipInstruction();
+            // Jump to fade out immediately (faster reaction time)
+            welcomeText.innerHTML = '';
+            setTimeout(() => {
+                fadeOutWelcome();
+            }, 100);
+        }
+    };
+    document.addEventListener('keydown', handleEnter);
+    
     setTimeout(() => {
+        if (skipWelcomeAnimation) return;
+        
         let index = 0;
         const typeInterval = setInterval(() => {
-            if (!animationsEnabled) {
+            if (skipWelcomeAnimation) {
                 clearInterval(typeInterval);
                 return;
             }
@@ -123,11 +166,21 @@ function welcomeAnimation() {
             } else {
                 clearInterval(typeInterval);
                 setTimeout(() => {
-                    deleteWelcomeText();
+                    if (!skipWelcomeAnimation) {
+                        deleteWelcomeText();
+                    }
                 }, 1000);
             }
         }, 100);
     }, 1500);
+    
+    // Total animation time: 1500 (delay) + 600 (type) + 1000 (pause) + 600 (delete) + 500 (fade) = 4200ms
+    // Remove skip instruction when full animation completes
+    setTimeout(() => {
+        if (!skipWelcomeAnimation) {
+            removeSkipInstruction();
+        }
+    }, 4200);
 }
 
 function deleteWelcomeText() {
@@ -163,12 +216,9 @@ function fadeOutWelcome() {
         welcomeOverlay.remove();
         // Start header animation sequence
         startHeaderAnimation();
-    }, 700);
+    }, 300);
 }
 
-// Hide header initially
-header.style.opacity = '0';
-header.style.pointerEvents = 'none';
 
 // Start welcome animation on page load
 welcomeAnimation();
@@ -320,8 +370,14 @@ function showAboutUnderline() {
 function showAboutBox() {
     const aboutSection = document.getElementById('aboutSection');
     return new Promise((resolve) => {
+        // Show about box instantly on first render (add instant class to disable transition)
+        aboutSection.classList.add('instant');
         aboutSection.classList.add('active');
-        setTimeout(resolve, 500); // Wait for fade transition
+        // Remove instant class after next tick so future transitions work normally
+        requestAnimationFrame(() => {
+            aboutSection.classList.remove('instant');
+            resolve();
+        });
     });
 }
 
@@ -347,12 +403,24 @@ async function startHeaderAnimation() {
     await new Promise(resolve => setTimeout(resolve, 300));
     await showAboutBox();
     
-    // Show about text instantly (no typing)
+    // Initialize all content without marking as visited - let nav clicks handle the timing
     const aboutTextElement = document.getElementById('aboutText');
     aboutTextElement.innerHTML = aboutText;
-    visitedSections.about = true;
     renderedContent.about = aboutText;
     typingProgress.about = aboutText.length;
+    
+    // Initialize Tech Stack content - preserve the HTML with images
+    const storageKeys = ['techBox1', 'techBox2', 'techBox3'];
+    
+    for (let i = 0; i < 3; i++) {
+        const boxElement = document.getElementById(`techBox${i + 1}`);
+        // Store the current HTML content (with images and title)
+        renderedContent[storageKeys[i]] = boxElement.innerHTML;
+        typingProgress[storageKeys[i]] = 1; // Mark as complete
+    }
+    
+    // Mark About as visited from the start so it loads instantly like already visited sections
+    visitedSections.about = true;
     
     // Attach event listeners AFTER nav items are created
     attachNavEventListeners();
@@ -424,66 +492,26 @@ function attachNavEventListeners() {
             
             if (itemText === 'About') {
                 await hideAllSections();
-                if (!visitedSections.about) {
-                    aboutTextElement.innerHTML = '';
-                }
                 aboutSection.classList.add('active');
                 
                 if (!visitedSections.about) {
-                    // If animations disabled, show immediately; otherwise wait 2000ms
-                    if (!animationsEnabled) {
-                        visitedSections.about = true;
-                        typeText(aboutTextElement, aboutText, 20, 'about', false);
-                    } else {
-                        await new Promise(resolve => setTimeout(resolve, 2000));
-                        visitedSections.about = true;
-                        typeText(aboutTextElement, aboutText, 20, 'about', false);
-                    }
-                } else if (typingProgress.about < aboutText.length) {
-                    typeText(aboutTextElement, aboutText, 20, 'about', true);
-                } else {
-                    aboutTextElement.innerHTML = renderedContent.about;
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    visitedSections.about = true;
                 }
             } else if (itemText === 'Tech Stack') {
                 await hideAllSections();
-                
-                if (!visitedSections.techStack) {
-                    techBox1.innerHTML = '';
-                    techBox2.innerHTML = '';
-                    techBox3.innerHTML = '';
-                }
-                
                 techStackSection.classList.add('active');
                 
                 if (!visitedSections.techStack) {
-                    // If animations disabled, show immediately; otherwise wait 2000ms
-                    if (!animationsEnabled) {
-                        visitedSections.techStack = true;
-                        startTechStackAnimation();
-                    } else {
-                        await new Promise(resolve => setTimeout(resolve, 2000));
-                        visitedSections.techStack = true;
-                        startTechStackAnimation();
-                    }
-                } else {
-                    const allComplete = typingProgress.techBox1 >= techBoxTitles[0].length &&
-                                      typingProgress.techBox2 >= techBoxTitles[1].length &&
-                                      typingProgress.techBox3 >= techBoxTitles[2].length;
-                    
-                    if (allComplete) {
-                        techBox1.innerHTML = renderedContent.techBox1;
-                        techBox2.innerHTML = renderedContent.techBox2;
-                        techBox3.innerHTML = renderedContent.techBox3;
-                    } else {
-                        resumeTechStackAnimation();
-                    }
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    visitedSections.techStack = true;
                 }
             } else if (itemText === 'Projects') {
                 await hideAllSections();
                 projectsSection.classList.add('active');
                 
                 if (!visitedSections.projects) {
-                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    await new Promise(resolve => setTimeout(resolve, 500));
                     visitedSections.projects = true;
                 }
             } else if (itemText === 'Contact') {
@@ -491,7 +519,7 @@ function attachNavEventListeners() {
                 contactSection.classList.add('active');
                 
                 if (!visitedSections.contact) {
-                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    await new Promise(resolve => setTimeout(resolve, 500));
                     visitedSections.contact = true;
                 }
             } else {
@@ -500,11 +528,6 @@ function attachNavEventListeners() {
                 techStackSection.classList.remove('active');
                 projectsSection.classList.remove('active');
                 contactSection.classList.remove('active');
-                
-                aboutTextElement.innerHTML = '';
-                techBox1.innerHTML = '';
-                techBox2.innerHTML = '';
-                techBox3.innerHTML = '';
             }
         });
     });
@@ -539,68 +562,6 @@ async function resumeTechStackAnimation() {
         typingProgress[storageKeys[i]] = title.length;
     }
 }
-
-// Animation Toggle Feature
-// Animation Toggle Feature - Functions
-const animationToggle = document.getElementById('animationToggle');
-
-function updateToggleText() {
-    animationToggle.querySelector('span').innerHTML = animationsEnabled 
-        ? 'PRESS <i>ESC</i> TO DISABLE ANIMATIONS' 
-        : 'PRESS <i>ESC</i> TO ENABLE ANIMATIONS';
-}
-
-function disableAllAnimations() {
-    animationsEnabled = false;
-    
-    // Add CSS to disable only the fade-in transitions for section containers
-    let disableStyle = document.getElementById('disable-animations-style');
-    if (!disableStyle) {
-        disableStyle = document.createElement('style');
-        disableStyle.id = 'disable-animations-style';
-        disableStyle.textContent = `
-            .about-container.active,
-            .tech-stack-container.active,
-            .projects-container.active,
-            .contact-container.active {
-                transition: none !important;
-            }
-        `;
-        document.head.appendChild(disableStyle);
-    }
-    
-    updateToggleText();
-}
-
-function enableAllAnimations() {
-    animationsEnabled = true;
-    
-    // Remove the disable animations style
-    const disableStyle = document.getElementById('disable-animations-style');
-    if (disableStyle) {
-        disableStyle.remove();
-    }
-    
-    updateToggleText();
-}
-
-function toggleAnimations() {
-    if (animationsEnabled) {
-        disableAllAnimations();
-    } else {
-        enableAllAnimations();
-    }
-}
-
-// Listen for ESC key press
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-        toggleAnimations();
-    }
-});
-
-// Listen for toggle click
-animationToggle.addEventListener('click', toggleAnimations);
 
 
 
